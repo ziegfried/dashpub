@@ -39,8 +39,16 @@ const splunkd = (
         body,
         agent: url.startsWith('https:') ? noValidateHttpsAgent : undefined,
     }).then(res => {
-        if (res.status > 299) {
-            throw new Error(`Splunkd responded with HTTP status ${res.status} requesting ${path}`);
+        if (!res.ok) {
+            return new Promise(async (_, reject) => {
+                try {
+                    const txt = await res.text();
+                    console.log('Server response:', txt);
+                } catch (e) {
+                    // ignore
+                }
+                reject(new Error(`Splunkd responded with HTTP status ${res.status} requesting ${path}`));
+            });
         }
         return res.json();
     });
